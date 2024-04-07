@@ -1,17 +1,20 @@
 const users = [
   {
+    user_id: '410544b2-4001-4271-9855-fec4b6a6442a',
     username: 'john_doe',
     email: 'john@example.com',
     password: 'password123', // Plain password (should be hashed before insertion)
     profile_image: 'users/john_profile.jpg'
   },
   {
+    user_id: '3958dc9e-712f-4377-85e9-fec4b6a6442a',
     username: 'alice_smith',
     email: 'alice@example.com',
     password: 'password456', // Plain password (should be hashed before insertion)
     profile_image: '/users/alice_profile.jpg'
   },
   {
+    user_id: '410544b2-4001-4271-9855-fec4b6a6442b',
     username: 'mike_jones',
     email: 'mike@example.com',
     password: 'password789', // Plain password (should be hashed before insertion)

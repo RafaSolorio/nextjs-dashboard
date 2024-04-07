@@ -11,7 +11,7 @@ const bcrypt = require('bcrypt');
 
 async function seedUsers(client) {
   try {
-    await client.sql`CREATE TABLE IF NOT EXISTS users (
+    await client.sql`CREATE TABLE IF NOT EXISTS users1 (
       user_id SERIAL PRIMARY KEY,
       username VARCHAR(255) NOT NULL,
       email VARCHAR(255) NOT NULL UNIQUE,
@@ -19,21 +19,14 @@ async function seedUsers(client) {
       profile_image VARCHAR(255)
     );`;
 
-    console.log('Created "users" table');
-
-    const hashedPasswords = await Promise.all(
-      users.map(async (user) => {
-        const hashedPassword = await bcrypt.hash(user.password, 10);
-        return hashedPassword;
-      })
-    );
+    console.log('Created "users1" table');
 
     const insertedUsers = await Promise.all(
       users.map(async (user, index) => {
-        const hashedPassword = hashedPasswords[index];
+        const hashedPassword = await bcrypt.hash(user.password, 10);
         return client.sql`
           INSERT INTO users (username, email, password, profile_image)
-          VALUES (${user.username}, ${user.email}, ${hashedPassword}, ${user.profile_image})
+          VALUES (${user.user_id}, ${user.username}, ${user.email}, ${hashedPassword}, ${user.profile_image})
           ON CONFLICT (email) DO NOTHING;
         `;
       })
