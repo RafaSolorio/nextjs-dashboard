@@ -1,5 +1,3 @@
-// seed.js
-
 const { db } = require('@vercel/postgres');
 
 const {
@@ -21,7 +19,7 @@ async function seedUsers(client) {
       profile_image VARCHAR(255)
     );`;
 
-    console.log('Created "users1" table');
+    console.log('Created "users" table');
 
     const hashedPasswords = await Promise.all(
       users.map(async (user) => {
@@ -50,23 +48,23 @@ async function seedUsers(client) {
 
 async function seedSellerProfiles(client) {
   try {
-    await client.query(`CREATE TABLE IF NOT EXISTS sellerProfiles (
+    await client.sql`CREATE TABLE IF NOT EXISTS sellerProfiles (
       seller_id SERIAL PRIMARY KEY,
       seller_name VARCHAR(255) NOT NULL,
       seller_description TEXT NOT NULL,
       seller_image VARCHAR(255),
       seller_socialmedia VARCHAR(255)
-    );`);
+    );`;
 
     console.log('Created "sellerProfiles" table');
 
     const insertedSellerProfiles = await Promise.all(
       sellerProfiles.map(async (profile) => {
-        return client.query(`
+        return client.sql`
           INSERT INTO sellerProfiles (seller_name, seller_description, seller_image, seller_socialmedia)
-          VALUES ($1, $2, $3, $4)
+          VALUES (${profile.seller_name}, ${profile.seller_description}, ${profile.seller_image}, ${profile.seller_socialmedia})
           ON CONFLICT (seller_name) DO NOTHING;
-        `, [profile.seller_name, profile.seller_description, profile.seller_image, profile.seller_socialmedia]);
+        `;
       })
     );
 
@@ -79,23 +77,24 @@ async function seedSellerProfiles(client) {
 
 async function seedProductListings(client) {
   try {
-    await client.query(`CREATE TABLE IF NOT EXISTS productListings (
+    await client.sql`CREATE TABLE IF NOT EXISTS productListings (
       product_id SERIAL PRIMARY KEY,
       seller_id INTEGER REFERENCES sellerProfiles(seller_id),
       product_name VARCHAR(255) NOT NULL,
       description TEXT NOT NULL,
       price NUMERIC(10, 2) NOT NULL,
       image VARCHAR(255)
-    );`);
+    );`;
 
     console.log('Created "productListings" table');
 
     const insertedProductListings = await Promise.all(
       productListings.map(async (product) => {
-        return client.query(`
+        return client.sql`
           INSERT INTO productListings (seller_id, product_name, description, price, image)
-          VALUES ($1, $2, $3, $4, $5);
-        `, [product.seller_id, product.product_name, product.description, product.price, product.image]);
+          VALUES (${product.seller_id}, ${product.product_name}, ${product.description}, ${product.price}, ${product.image})
+          ON CONFLICT (product_name) DO NOTHING;
+        `;
       })
     );
 
@@ -108,23 +107,24 @@ async function seedProductListings(client) {
 
 async function seedReviewsAndRatings(client) {
   try {
-    await client.query(`CREATE TABLE IF NOT EXISTS reviewsAndRatings (
+    await client.sql`CREATE TABLE IF NOT EXISTS reviewsAndRatings (
       review_id SERIAL PRIMARY KEY,
       product_id INTEGER REFERENCES productListings(product_id),
       username VARCHAR(255) NOT NULL,
       rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
       review_description TEXT NOT NULL,
       timestamp TIMESTAMP NOT NULL
-    );`);
+    );`;
 
     console.log('Created "reviewsAndRatings" table');
 
     const insertedReviewsAndRatings = await Promise.all(
       reviewsAndRatings.map(async (review) => {
-        return client.query(`
+        return client.sql`
           INSERT INTO reviewsAndRatings (product_id, username, rating, review_description, timestamp)
-          VALUES ($1, $2, $3, $4, $5);
-        `, [review.product_id, review.username, review.rating, review.review_description, review.timestamp]);
+          VALUES (${review.product_id}, ${review.username}, ${review.rating}, ${review.review_description}, ${review.timestamp})
+          ON CONFLICT (review_id) DO NOTHING;
+        `;
       })
     );
 
@@ -134,7 +134,6 @@ async function seedReviewsAndRatings(client) {
     throw error;
   }
 }
-
 
 async function main() {
   const client = await db.connect();
